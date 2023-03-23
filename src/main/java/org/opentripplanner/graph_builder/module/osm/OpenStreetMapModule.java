@@ -175,6 +175,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
      * The bike safety factor of the safest street
      */
     private float bestBikeSafety = 1.0f;
+
+    private String BIKESAFETY_TAG = "bikesafety";
     /**
      * The walk safety factor of the safest street
      */
@@ -269,7 +271,10 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       boolean walkNoThrough = tagMapperForWay.isWalkNoThroughTrafficExplicitlyDisallowed(way);
 
       if (street != null) {
-        double bicycleSafety = wayData.getBicycleSafetyFeatures().forward();
+        double bicycleSafety = getBikeSafetyTagValue(
+          way,
+          wayData.getBicycleSafetyFeatures().forward()
+        );
         street.setBicycleSafetyFactor((float) bicycleSafety);
         if (bicycleSafety < bestBikeSafety) {
           bestBikeSafety = (float) bicycleSafety;
@@ -290,7 +295,10 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
 
       if (backStreet != null) {
-        double bicycleSafety = wayData.getBicycleSafetyFeatures().back();
+        double bicycleSafety = getBikeSafetyTagValue(
+          way,
+          wayData.getBicycleSafetyFeatures().back()
+        );
         if (bicycleSafety < bestBikeSafety) {
           bestBikeSafety = (float) bicycleSafety;
         }
@@ -308,6 +316,19 @@ public class OpenStreetMapModule implements GraphBuilderModule {
         backStreet.setMotorVehicleNoThruTraffic(motorVehicleNoThrough);
         backStreet.setBicycleNoThruTraffic(bicycleNoThrough);
         backStreet.setWalkNoThruTraffic(walkNoThrough);
+      }
+    }
+
+    public float getBikeSafetyTagValue(OSMWithTags way, double defaultValue) {
+      String bst = way.getTag(BIKESAFETY_TAG);
+
+      if (bst == null) return (float) defaultValue;
+
+      try {
+        return (float) Double.parseDouble(bst);
+      } catch (NumberFormatException nfe) {
+        nfe.printStackTrace();
+        return (float) defaultValue;
       }
     }
 
@@ -560,11 +581,11 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
           if (
             intersectionNodes.containsKey(endNode) ||
-            i == nodes.size() - 2 ||
-            nodes.subList(0, i).contains(nodes.get(i)) ||
-            osmEndNode.hasTag("ele") ||
-            osmEndNode.isBoardingLocation() ||
-            osmEndNode.isBarrier()
+              i == nodes.size() - 2 ||
+              nodes.subList(0, i).contains(nodes.get(i)) ||
+              osmEndNode.hasTag("ele") ||
+              osmEndNode.isBoardingLocation() ||
+              osmEndNode.isBarrier()
           ) {
             segmentCoordinates.add(getCoordinate(osmEndNode));
 
