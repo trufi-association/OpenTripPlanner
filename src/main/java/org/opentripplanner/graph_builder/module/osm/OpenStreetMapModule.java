@@ -176,7 +176,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
      */
     private float bestBikeSafety = 1.0f;
 
-    private String BIKESAFETY_TAG = "bikesafety";
+    private String BIKE_SAFETY_TAG = "bikesafety";
     /**
      * The walk safety factor of the safest street
      */
@@ -271,10 +271,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       boolean walkNoThrough = tagMapperForWay.isWalkNoThroughTrafficExplicitlyDisallowed(way);
 
       if (street != null) {
-        double bicycleSafety = getBikeSafetyTagValue(
-          way,
-          wayData.getBicycleSafetyFeatures().forward()
-        );
+        double bicycleSafety = getBikeSafetyTagValue(way, wayData, true);
         street.setBicycleSafetyFactor((float) bicycleSafety);
         if (bicycleSafety < bestBikeSafety) {
           bestBikeSafety = (float) bicycleSafety;
@@ -295,10 +292,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
 
       if (backStreet != null) {
-        double bicycleSafety = getBikeSafetyTagValue(
-          way,
-          wayData.getBicycleSafetyFeatures().back()
-        );
+        double bicycleSafety = getBikeSafetyTagValue(way, wayData, false);
         if (bicycleSafety < bestBikeSafety) {
           bestBikeSafety = (float) bicycleSafety;
         }
@@ -319,16 +313,20 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
     }
 
-    public float getBikeSafetyTagValue(OSMWithTags way, double defaultValue) {
-      String bst = way.getTag(BIKESAFETY_TAG);
+    public float getBikeSafetyTagValue(OSMWithTags way, WayProperties wayData, boolean forward) {
+      String bst = way.getTag(BIKE_SAFETY_TAG);
 
-      if (bst == null) return (float) defaultValue;
+      if (bst == null) return (float) (
+        forward
+          ? wayData.getBicycleSafetyFeatures().forward()
+          : wayData.getBicycleSafetyFeatures().back()
+      );
 
       try {
         return (float) Double.parseDouble(bst);
       } catch (NumberFormatException nfe) {
         nfe.printStackTrace();
-        return (float) defaultValue;
+        return bestBikeSafety;
       }
     }
 
@@ -581,11 +579,11 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
           if (
             intersectionNodes.containsKey(endNode) ||
-              i == nodes.size() - 2 ||
-              nodes.subList(0, i).contains(nodes.get(i)) ||
-              osmEndNode.hasTag("ele") ||
-              osmEndNode.isBoardingLocation() ||
-              osmEndNode.isBarrier()
+            i == nodes.size() - 2 ||
+            nodes.subList(0, i).contains(nodes.get(i)) ||
+            osmEndNode.hasTag("ele") ||
+            osmEndNode.isBoardingLocation() ||
+            osmEndNode.isBarrier()
           ) {
             segmentCoordinates.add(getCoordinate(osmEndNode));
 
