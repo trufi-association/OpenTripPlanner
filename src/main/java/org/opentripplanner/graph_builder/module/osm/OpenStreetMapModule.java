@@ -155,7 +155,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
     return elevationData;
   }
 
-  private record StreetEdgePair(StreetEdge main, StreetEdge back) {}
+  private record StreetEdgePair(StreetEdge main, StreetEdge back) {
+  }
 
   protected class Handler {
 
@@ -211,7 +212,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
         osmdb.getWalkableAreas(),
         osmdb.getParkAndRideAreas(),
         osmdb.getBikeParkingAreas()
-      )) setWayName(area.parent);
+      ))
+        setWayName(area.parent);
 
       // figure out which nodes that are actually intersections
       initIntersectionNodes();
@@ -273,9 +275,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       if (street != null) {
         double bicycleSafety = getBikeSafetyTagValue(way, wayData, true);
         street.setBicycleSafetyFactor((float) bicycleSafety);
-        if (bicycleSafety < bestBikeSafety) {
-          bestBikeSafety = (float) bicycleSafety;
-        }
+
         double walkSafety = wayData.getWalkSafetyFeatures().forward();
         street.setWalkSafetyFactor((float) walkSafety);
         if (walkSafety < bestWalkSafety) {
@@ -293,9 +293,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
       if (backStreet != null) {
         double bicycleSafety = getBikeSafetyTagValue(way, wayData, false);
-        if (bicycleSafety < bestBikeSafety) {
-          bestBikeSafety = (float) bicycleSafety;
-        }
+
         backStreet.setBicycleSafetyFactor((float) bicycleSafety);
         double walkSafety = wayData.getWalkSafetyFeatures().back();
         if (walkSafety < bestWalkSafety) {
@@ -316,11 +314,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
     public float getBikeSafetyTagValue(OSMWithTags way, WayProperties wayData, boolean forward) {
       String bst = way.getTag(BIKE_SAFETY_TAG);
 
-      if (bst == null) return (float) (
-        forward
-          ? wayData.getBicycleSafetyFeatures().forward()
-          : wayData.getBicycleSafetyFeatures().back()
-      );
+      if (bst == null)
+        return bestBikeSafety;
 
       try {
         return (float) Double.parseDouble(bst);
@@ -494,7 +489,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       ProgressTracker progress = ProgressTracker.track("Build street graph", 5_000, wayCount);
       LOG.info(progress.startMessage());
 
-      WAY:for (OSMWay way : osmdb.getWays()) {
+      WAY:
+      for (OSMWay way : osmdb.getWays()) {
         WayProperties wayData = way.getOsmProvider().getWayPropertySet().getDataForWay(way);
         setWayName(way);
         StreetTraversalPermission permissions = OSMFilter.getPermissionsForWay(
@@ -512,7 +508,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
         long last = -1;
         double lastLat = -1, lastLon = -1;
         String lastLevel = null;
-        for (TLongIterator iter = way.getNodeRefs().iterator(); iter.hasNext();) {
+        for (TLongIterator iter = way.getNodeRefs().iterator(); iter.hasNext(); ) {
           long nodeId = iter.next();
           OSMNode node = osmdb.getNode(nodeId);
           if (node == null) continue WAY;
@@ -579,11 +575,11 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
           if (
             intersectionNodes.containsKey(endNode) ||
-            i == nodes.size() - 2 ||
-            nodes.subList(0, i).contains(nodes.get(i)) ||
-            osmEndNode.hasTag("ele") ||
-            osmEndNode.isBoardingLocation() ||
-            osmEndNode.isBarrier()
+              i == nodes.size() - 2 ||
+              nodes.subList(0, i).contains(nodes.get(i)) ||
+              osmEndNode.hasTag("ele") ||
+              osmEndNode.isBoardingLocation() ||
+              osmEndNode.isBarrier()
           ) {
             segmentCoordinates.add(getCoordinate(osmEndNode));
 
