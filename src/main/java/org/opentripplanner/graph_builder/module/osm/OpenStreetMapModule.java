@@ -275,7 +275,9 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       if (street != null) {
         double bicycleSafety = getBikeSafetyTagValue(way, wayData, true);
         street.setBicycleSafetyFactor((float) bicycleSafety);
-
+        if (bicycleSafety < bestBikeSafety) {
+          bestBikeSafety = (float) bicycleSafety;
+        }
         double walkSafety = wayData.getWalkSafetyFeatures().forward();
         street.setWalkSafetyFactor((float) walkSafety);
         if (walkSafety < bestWalkSafety) {
@@ -293,7 +295,9 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
       if (backStreet != null) {
         double bicycleSafety = getBikeSafetyTagValue(way, wayData, false);
-
+        if (bicycleSafety < bestBikeSafety) {
+          bestBikeSafety = (float) bicycleSafety;
+        }
         backStreet.setBicycleSafetyFactor((float) bicycleSafety);
         double walkSafety = wayData.getWalkSafetyFeatures().back();
         if (walkSafety < bestWalkSafety) {
@@ -314,8 +318,11 @@ public class OpenStreetMapModule implements GraphBuilderModule {
     public float getBikeSafetyTagValue(OSMWithTags way, WayProperties wayData, boolean forward) {
       String bst = way.getTag(BIKE_SAFETY_TAG);
 
-      if (bst == null)
-        return bestBikeSafety;
+      if (bst == null) return (float) (
+        forward
+          ? wayData.getBicycleSafetyFeatures().forward()
+          : wayData.getBicycleSafetyFeatures().back()
+      );
 
       try {
         return (float) Double.parseDouble(bst);
