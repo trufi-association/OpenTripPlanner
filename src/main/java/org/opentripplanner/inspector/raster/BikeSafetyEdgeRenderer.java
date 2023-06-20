@@ -23,16 +23,34 @@ public class BikeSafetyEdgeRenderer implements EdgeVertexRenderer {
   private static final Color VEHICLE_RENTAL_COLOR_VERTEX = new Color(0.0f, 0.7f, 0.0f);
   private final ScalarColorPalette palette = new DefaultScalarColorPalette(1.0, 3.0, 10.0);
 
-  public BikeSafetyEdgeRenderer() {}
+  public BikeSafetyEdgeRenderer() {
+  }
+
+  public Color getSafetyColor(double bikeSafety, int bikeSafetyOpacity) {
+    Color bsc = palette.getColor(bikeSafety);
+    int rgba = (bikeSafetyOpacity << 24) | (bsc.getRGB() & 0xFFFFFF);
+    return new Color(rgba, true);
+  }
+
+  public String buildLabel(double bikeSafety, int bikeSafetyOpacity) {
+    StringBuilder sb = new StringBuilder();
+    sb
+      .append(String.format("%.02f", bikeSafety))
+      .append(" - ")
+      .append(bikeSafetyOpacity);
+
+    return sb.toString();
+  }
 
   @Override
   public Optional<EdgeVisualAttributes> renderEdge(Edge e) {
     if (e instanceof StreetEdge pse) {
       if (pse.getPermission().allows(TraverseMode.BICYCLE)) {
         double bikeSafety = pse.getBicycleSafetyFactor();
+        int bikeSafetyOpacity = pse.getBicycleSafetyFactorOpacity();
         return EdgeVisualAttributes.optional(
-          palette.getColor(bikeSafety),
-          String.format("%.02f", bikeSafety)
+          getSafetyColor(bikeSafety, bikeSafetyOpacity),
+          buildLabel(bikeSafety, bikeSafetyOpacity)
         );
       } else {
         return EdgeVisualAttributes.optional(Color.LIGHT_GRAY, "no bikes");

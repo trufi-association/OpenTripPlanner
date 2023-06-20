@@ -83,6 +83,8 @@ public class StreetEdge
    */
   protected float bicycleSafetyFactor;
 
+  protected int bicycleSafetyFactorOpacity;
+
   /**
    * walkSafetyFactor = length * walkSafetyFactor. For example, a 100m street with a safety
    * factor of 2.0 will be considered in term of safety cost as the same as a 200m street with a
@@ -323,6 +325,10 @@ public class StreetEdge
     return bicycleSafetyFactor;
   }
 
+  public int getBicycleSafetyFactorOpacity() {
+    return bicycleSafetyFactorOpacity;
+  }
+
   public void setBicycleSafetyFactor(float bicycleSafetyFactor) {
     if (hasElevationExtension()) {
       throw new IllegalStateException(
@@ -333,6 +339,10 @@ public class StreetEdge
       throw new IllegalArgumentException("Invalid bicycleSafetyFactor: " + bicycleSafetyFactor);
     }
     this.bicycleSafetyFactor = bicycleSafetyFactor;
+  }
+
+  public void setBicycleSafetyFactorOpacity(int bicycleSafetyFactorOpacity) {
+    this.bicycleSafetyFactorOpacity = bicycleSafetyFactorOpacity;
   }
 
   public double getEffectiveBicycleSafetyDistance() {

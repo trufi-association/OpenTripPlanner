@@ -177,7 +177,9 @@ public class OpenStreetMapModule implements GraphBuilderModule {
      */
     private float bestBikeSafety = 1.0f;
 
-    private String BIKE_SAFETY_TAG = "bikesafety";
+    private final String BIKESAFETY_TAG = "bikesafety";
+
+    private final String BIKESAFETY_OPACITY_TAG = "bikesafety-opacity";
     /**
      * The walk safety factor of the safest street
      */
@@ -273,11 +275,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       boolean walkNoThrough = tagMapperForWay.isWalkNoThroughTrafficExplicitlyDisallowed(way);
 
       if (street != null) {
-        double bicycleSafety = getBikeSafetyTagValue(way, wayData, true);
-        street.setBicycleSafetyFactor((float) bicycleSafety);
-        if (bicycleSafety < bestBikeSafety) {
-          bestBikeSafety = (float) bicycleSafety;
-        }
+        setBikeSafetyProperties(street, wayData, way, true);
         double walkSafety = wayData.getWalkSafetyFeatures().forward();
         street.setWalkSafetyFactor((float) walkSafety);
         if (walkSafety < bestWalkSafety) {
@@ -294,11 +292,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
 
       if (backStreet != null) {
-        double bicycleSafety = getBikeSafetyTagValue(way, wayData, false);
-        if (bicycleSafety < bestBikeSafety) {
-          bestBikeSafety = (float) bicycleSafety;
-        }
-        backStreet.setBicycleSafetyFactor((float) bicycleSafety);
+        setBikeSafetyProperties(backStreet, wayData, way, false);
         double walkSafety = wayData.getWalkSafetyFeatures().back();
         if (walkSafety < bestWalkSafety) {
           bestWalkSafety = (float) walkSafety;
@@ -315,8 +309,8 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
     }
 
-    public float getBikeSafetyTagValue(OSMWithTags way, WayProperties wayData, boolean forward) {
-      String bst = way.getTag(BIKE_SAFETY_TAG);
+    public float getBikeSafetyValue(OSMWithTags way, WayProperties wayData, boolean forward) {
+      String bst = way.getTag(BIKESAFETY_TAG);
 
       if (bst == null) return (float) (
         forward
@@ -330,6 +324,35 @@ public class OpenStreetMapModule implements GraphBuilderModule {
         nfe.printStackTrace();
         return bestBikeSafety;
       }
+    }
+
+    public int getBikeSafetyOpacityValue(OSMWithTags way) {
+      String bso = way.getTag(BIKESAFETY_OPACITY_TAG);
+
+      if (bso == null) return 0;
+
+      try {
+        return Integer.parseInt(bso);
+      } catch (NumberFormatException nfe) {
+        nfe.printStackTrace();
+        return 0;
+      }
+    }
+
+    public void setBikeSafetyProperties(
+      StreetEdge street,
+      WayProperties wayData,
+      OSMWithTags way,
+      boolean forward
+    ) {
+      double bicycleSafety = getBikeSafetyValue(way, wayData, forward);
+      int bicycleSafetyOpacity = getBikeSafetyOpacityValue(way);
+
+      if (bicycleSafety < bestBikeSafety) {
+        bestBikeSafety = (float) bicycleSafety;
+      }
+      street.setBicycleSafetyFactorOpacity(bicycleSafetyOpacity);
+      street.setBicycleSafetyFactor((float) bicycleSafety);
     }
 
     // TODO Set this to private once WalkableAreaBuilder is gone
