@@ -44,30 +44,26 @@ public class BikeSafetyEdgeRenderer implements EdgeVertexRenderer {
 
   @Override
   public Optional<EdgeVisualAttributes> renderEdge(Edge e) {
-    if (e instanceof StreetEdge pse) {
-      if (pse.getPermission().allows(TraverseMode.BICYCLE)) {
-        double bikeSafety = pse.getBicycleSafetyFactor();
-        int bikeSafetyOpacity = pse.getBicycleSafetyFactorOpacity();
-        return EdgeVisualAttributes.optional(
-          getSafetyColor(bikeSafety, bikeSafetyOpacity),
-          buildLabel(bikeSafety, bikeSafetyOpacity)
-        );
-      } else {
-        return EdgeVisualAttributes.optional(Color.LIGHT_GRAY, "no bikes");
-      }
-    } else if (e instanceof StreetVehicleRentalLink) {
-      return EdgeVisualAttributes.optional(palette.getColor(1.0f), "link");
-    }
-    return Optional.empty();
+    if (!(e instanceof StreetEdge pse))
+      return Optional.empty();
+
+    if (!pse.getPermission().allows(TraverseMode.BICYCLE))
+      return Optional.empty();
+
+    double bikeSafety = pse.getBicycleSafetyFactor();
+    int bikeSafetyOpacity = pse.getBicycleSafetyFactorOpacity();
+
+    if (bikeSafetyOpacity == 0)
+      return Optional.empty();
+
+    return EdgeVisualAttributes.optional(
+      getSafetyColor(bikeSafety, bikeSafetyOpacity),
+      buildLabel(bikeSafety, bikeSafetyOpacity)
+    );
   }
 
   @Override
   public Optional<VertexVisualAttributes> renderVertex(Vertex v) {
-    if (v instanceof VehicleRentalPlaceVertex) {
-      return VertexVisualAttributes.optional(VEHICLE_RENTAL_COLOR_VERTEX, v.getDefaultName());
-    } else if (v instanceof IntersectionVertex) {
-      return VertexVisualAttributes.optional(Color.DARK_GRAY, null);
-    }
     return Optional.empty();
   }
 

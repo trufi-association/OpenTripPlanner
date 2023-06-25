@@ -177,28 +177,6 @@ public class EdgeVertexTileRenderer implements TileRenderer {
         context.graphics.setColor(evAttrs.color);
         context.graphics.draw(offsetShape);
       }
-      if (lineWidth > 6.0f) {
-        context.graphics.setColor(Color.WHITE);
-        context.graphics.setStroke(arrowStroke);
-        context.graphics.draw(offsetShape);
-      }
-      if (lineWidth > 4.0f) {
-        context.graphics.setColor(Color.BLACK);
-        context.graphics.setStroke(thinStroke);
-        context.graphics.draw(midLineShape);
-      }
-      if (evAttrs.label != null && lineWidth > 8.0f) {
-        context.graphics.setColor(Color.BLACK);
-        context.graphics.setStroke(
-          new TextStroke(
-            "    " + evAttrs.label + "                              ",
-            font,
-            false,
-            true
-          )
-        );
-        context.graphics.draw(offsetShape);
-      }
     }
 
     // Render all vertices
