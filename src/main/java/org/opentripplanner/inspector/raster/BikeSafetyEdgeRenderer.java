@@ -22,14 +22,14 @@ public class BikeSafetyEdgeRenderer implements EdgeVertexRenderer {
 
   private static final Color VEHICLE_RENTAL_COLOR_VERTEX = new Color(0.0f, 0.7f, 0.0f);
   private final ScalarColorPalette palette = new DefaultScalarColorPalette(1.0, 3.0, 10.0);
+  private final ScalarColorPalette customPalette = new DefaultScalarColorPalette(0.0, 100.0, 200.0);
 
   public BikeSafetyEdgeRenderer() {
   }
 
   public Color getSafetyColor(double bikeSafety, int bikeSafetyOpacity) {
-    Color bsc = palette.getColor(bikeSafety);
-    int rgba = (bikeSafetyOpacity << 24) | (bsc.getRGB() & 0xFFFFFF);
-    return new Color(rgba, true);
+    int red = (int) (2.55 * bikeSafety);
+    return new Color(red, 255 - red, 0, bikeSafetyOpacity);
   }
 
   public String buildLabel(double bikeSafety, int bikeSafetyOpacity) {

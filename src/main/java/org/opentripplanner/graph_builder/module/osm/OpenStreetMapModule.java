@@ -312,17 +312,13 @@ public class OpenStreetMapModule implements GraphBuilderModule {
     public float getBikeSafetyValue(OSMWithTags way, WayProperties wayData, boolean forward) {
       String bst = way.getTag(BIKESAFETY_TAG);
 
-      if (bst == null) return (float) (
-        forward
-          ? wayData.getBicycleSafetyFeatures().forward()
-          : wayData.getBicycleSafetyFeatures().back()
-      );
+      if (bst == null) return 100;
 
       try {
         return (float) Double.parseDouble(bst);
       } catch (NumberFormatException nfe) {
         nfe.printStackTrace();
-        return bestBikeSafety;
+        return 100;
       }
     }
 
@@ -339,6 +335,22 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       }
     }
 
+    private double limitBikeSafetyFactor(double factor) {
+      if (factor > 100.0) return 100.0;
+
+      if (factor <= 0) return bestBikeSafety;
+
+      return factor;
+    }
+
+    private int limitBikeSafetyFactorOpacity(int factor) {
+      if (factor > 255) return 255;
+
+      if (factor < 0) return 0;
+
+      return factor;
+    }
+
     public void setBikeSafetyProperties(
       StreetEdge street,
       WayProperties wayData,
@@ -348,9 +360,9 @@ public class OpenStreetMapModule implements GraphBuilderModule {
       double bicycleSafety = getBikeSafetyValue(way, wayData, forward);
       int bicycleSafetyOpacity = getBikeSafetyOpacityValue(way);
 
-      if (bicycleSafety < bestBikeSafety) {
-        bestBikeSafety = (float) bicycleSafety;
-      }
+      bicycleSafety = limitBikeSafetyFactor(bicycleSafety);
+      bicycleSafetyOpacity = limitBikeSafetyFactorOpacity(bicycleSafetyOpacity);
+
       street.setBicycleSafetyFactorOpacity(bicycleSafetyOpacity);
       street.setBicycleSafetyFactor((float) bicycleSafety);
     }
@@ -887,7 +899,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
           if (!seenEdges.contains(e)) {
             seenEdges.add(e);
-            pse.setBicycleSafetyFactor(pse.getBicycleSafetyFactor() / bestBikeSafety);
+            //pse.setBicycleSafetyFactor(pse.getBicycleSafetyFactor() / bestBikeSafety);
             pse.setWalkSafetyFactor(pse.getWalkSafetyFactor() / bestWalkSafety);
           }
         }
@@ -899,7 +911,7 @@ public class OpenStreetMapModule implements GraphBuilderModule {
 
           if (!seenEdges.contains(e)) {
             seenEdges.add(e);
-            pse.setBicycleSafetyFactor(pse.getBicycleSafetyFactor() / bestBikeSafety);
+            //pse.setBicycleSafetyFactor(pse.getBicycleSafetyFactor() / bestBikeSafety);
             pse.setWalkSafetyFactor(pse.getWalkSafetyFactor() / bestWalkSafety);
           }
         }
